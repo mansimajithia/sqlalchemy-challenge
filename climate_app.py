@@ -35,14 +35,20 @@ app = Flask(__name__)
 #################################################
 @app.route("/")
 def welcome():
-    return (
-        f"Available Routes:<br/>"
-        f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/&lt;start&gt;<br/>"
-        f"/api/v1.0/&lt;start&gt;/&lt;end&gt;"
-    )
+    return f""" Available Routes:<br/>
+        /api/v1.0/precipitation<br/>
+        /api/v1.0/stations<br/>
+        /api/v1.0/tobs<br/>
+        /api/v1.0/start<br/>
+        /api/v1.0/start/end<br/> """
+    # return (
+    #     f"Available Routes:<br/>"
+    #     f"/api/v1.0/precipitation<br/>"
+    #     f"/api/v1.0/stations<br/>"
+    #     f"/api/v1.0/tobs<br/>"
+    #     f"/api/v1.0/&lt;start&gt;<br/>"
+    #     f"/api/v1.0/&lt;start&gt;/&lt;end&gt;"
+    # )
 
 # Precipitation Route
 @app.route("/api/v1.0/precipitation")
@@ -97,19 +103,22 @@ def tobs():
 """Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
 When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
 When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive."""
+
 @app.route("/api/v1.0/<start>")
 def start_date(start):
     session = Session(engine)
     #change start date to datetime
-    # start_date = dt.datetime.strftime('%Y-%m-%d')
+    # start_date = start_date.format.dt.datetime.strftime('%Y-%m-%d')
     # measurement.date = dt.date  
-    results = session.query(Measurement.date), func.min(Measurement.tobs), func.avg(Measurement.tobs),\
-        func.max(Measurement.tobs). filter(Measurement.date>= start_date).all()
+    results = session.query(func.min(Measurement.tobs)), (func.avg(Measurement.tobs)),\
+        (func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start).all()
+
     session.close()
+
     start_list = []
-    for date, min, avg, max in results:
+    for min, avg, max in results:
         start_dict = {}
-        start_dict["date"] = start_date
         start_dict["TMIN"] = min
         start_dict["TAVG"] = avg
         start_dict["TMAX"] = max
@@ -119,15 +128,16 @@ def start_date(start):
 def end_date(start,end):
     session = Session(engine)
     
-    results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
+    results = session.query(func.min(Measurement.tobs)), func.avg(Measurement.tobs), \
+        func.max(Measurement.tobs).\
+        filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+
     session.close()
 
     end_list = []
 
-    for date, min, avg, max in results:
+    for min, avg, max in results:
         end_dict = {}
-        end_dict["date"] = date
         end_dict["TMIN"] = min
         end_dict["TAVG"] = avg
         end_dict["TMAX"] = max
